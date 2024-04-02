@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stripe Payment Example</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .form-container {
+            width: 50%;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Stripe Payment Example</h1>
+        
+        <form id="payment-form">
+            <div class="form-group">
+                <label for="card-element">Credit or debit card</label>
+                <div id="card-element"></div>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="text" id="amount" placeholder="Enter amount" required>
+            </div>
+            <div class="form-group">
+                <label for="currency">Currency:</label>
+                <input type="text" id="currency" placeholder="Enter currency" required>
+            </div>
+            <button type="submit">Pay</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        var stripe = Stripe('pk_test_51P0xYPDCswokx5t0y1nEObom94uQ2nnfu10U19WwmqyJmRfAvGFJWnGcaXxXlQcXCCHOhNNumcqqKWzQN8Ph6RME00FyKeIiUZ');
+        var elements = stripe.elements();
+        var cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+        
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            var amountInDollars = document.getElementById('amount').value;
+            var currency = document.getElementById('currency').value;
+            var amount = amountInDollars * 100; // Convert to smallest currency unit
+            
+            stripe.createToken(cardElement).then(function(result) {
+                if (result.error) {
+                    showError(result.error.message);
+                } else {
+                    createCharge(result.token.id, amount, currency);
+                }
+            });
+        });
+        
+        function createCharge(token, amount, currency) {
+            var data = {
+                token: token,
+                amount: amount,
+                currency: currency
+            };
+            
+            fetch('/create_charge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                showResult('Charge created successfully. Charge ID: ' + data.id + '. Latency: ' + data.latency + ' seconds');
+            })
+            .catch(function(error) {
+                showError('Error creating charge: ' + error.message);
+            });
+        }
+        
+        function showResult(message) {
+            var resultElement = document.getElementById('result');
+            resultElement.innerHTML = message;
+        }
+        
+        function showError(message) {
+            var resultElement = document.getElementById('result');
+            resultElement.innerHTML = '<p style="color: red;">' + message + '</p>';
+        }
+    </script>
+</body>
+</html>
