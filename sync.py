@@ -3,32 +3,30 @@ import requests
 from flask import Flask, jsonify, request, render_template
 from datetime import datetime
 
-app = Flask(__name__)
+app: Flask = Flask(__name__)
 
 class Charge:
-    def __init__(self, id: str, amount: int, currency: str, status: str):
-        self.id = id
-        self.amount = amount
-        self.currency = currency
-        self.status = status
+    def __init__(self, id: str, amount: int, currency: str, status: str) -> None:
+        self.id: str = id
+        self.amount: int = amount
+        self.currency: str = currency
+        self.status: str = status
         
 @app.route('/')
-def index():
+def index() -> str:
     return render_template('charge.html')
 
 @app.route('/create_charge', methods=['POST'])
-def create_charge():
-    start = datetime.now()
+def create_charge() -> tuple:
+    start: datetime = datetime.now()
 
-    data = request.get_json()
-    token = data['token']
-    amount = data['amount']
-    currency = data['currency']
-    print(amount)
-    print(currency)
+    data: dict = request.get_json()
+    token: str = data['token']
+    amount: int = data['amount']
+    currency: str = data['currency']
 
     try:
-        response = requests.post(
+        response: requests.Response = requests.post(
             'https://api.stripe.com/v1/charges',
             auth=('sk_test_51P0xYPDCswokx5t0NuOCsGpcYv3HE7yOZ7fcjnPskO4uo1BcvWTqttBoUBnWjj5wXVmeJdHVOTfoZeQEKEGzg98300mEppeWg2', ''),
             data={
@@ -38,23 +36,21 @@ def create_charge():
             },
             timeout=5
         )
-        print(response.json())
         response.raise_for_status()  # Raises stored HTTPError, if one occurred
     except requests.exceptions.RequestException as err:
         # Handle timeouts, connection errors, etc.
         return jsonify(error=str(err)), 500
 
-    data = response.json()
-    charge = Charge(
+    data: dict = response.json()
+    charge: Charge = Charge(
         id=data['id'],
         amount=data['amount'],
         currency=data['currency'],
         status=data['status']
     )
 
-    latency = datetime.now() - start
+    latency: datetime.timedelta = datetime.now() - start
 
-    print(f"Returning charge ID: {charge.id} with latency: {latency.total_seconds()} seconds")
     return jsonify(id=charge.__dict__['id'], latency=latency.total_seconds())
   
 if __name__ == '__main__':
