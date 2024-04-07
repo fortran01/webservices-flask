@@ -86,9 +86,13 @@ def create_charge() -> tuple:
         )
         response.raise_for_status()  # Raises stored HTTPError, if one occurred
     except requests.exceptions.RequestException as err:
-        # Handle timeouts, connection errors, etc.
-        return jsonify(error=str(err)), 500
-
+        if 'error' in err.response.json():
+            error_message = err.response.json().get('error').get('message', '')
+            return (jsonify(error=f"Failed to create charge: {error_message}"),
+                    err.response.status_code)
+        else:
+            return (jsonify(error="Failed to create charge: An internal error "
+                            "occurred"), 500)
     data: dict = response.json()
     charge: Charge = Charge(
         id=data['id'],
