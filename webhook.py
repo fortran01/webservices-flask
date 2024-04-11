@@ -45,7 +45,7 @@ def stripe_webhook() -> Tuple[str, int]:
         # Log invalid payload error
         app.logger.error(f'Invalid payload: {e}')
         abort(400)
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError as e:  # type: ignore
         # Log invalid signature error
         app.logger.error(f'Invalid signature: {e}')
         abort(400)
