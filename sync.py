@@ -4,9 +4,10 @@ sync.py: A synchronous version of the charge service using the Stripe API.
 
 import os
 import requests
-from flask import Flask, jsonify, request, render_template
-from datetime import datetime
+from flask import Flask, jsonify, request, render_template, Response
+from datetime import datetime, timedelta
 from config import BaseConfig, ProdConfig, TestConfig
+from typing import Tuple, Union
 
 app: Flask = Flask(__name__)
 
@@ -21,24 +22,25 @@ else:
 
 class Charge:
     """
-    A class to represent a charge.
+    Represents a charge in the context of the Stripe API.
 
     Attributes:
-        id (str): The unique identifier for the charge.
-        amount (int): The amount of the charge.
-        currency (str): The currency of the charge.
-        status (str): The status of the charge.
+        id (str): Unique identifier for the charge.
+        amount (int): Amount of the charge.
+        currency (str): Currency of the charge.
+        status (str): Status of the charge.
     """
+
     def __init__(self, id: str, amount: int, currency: str,
                  status: str) -> None:
         """
-        Initializes a new instance of the Charge class.
+        Initializes a new Charge instance.
 
         Parameters:
-            id (str): The unique identifier for the charge.
-            amount (int): The amount of the charge.
-            currency (str): The currency of the charge.
-            status (str): The status of the charge.
+            id (str): Unique identifier for the charge.
+            amount (int): Amount of the charge.
+            currency (str): Currency of the charge.
+            status (str): Status of the charge.
         """
         self.id: str = id
         self.amount: int = amount
@@ -52,18 +54,18 @@ def index() -> str:
     Renders the main page of the application.
 
     Returns:
-        str: The HTML content of the main page.
+        str: HTML content of the main page.
     """
     return render_template('charge.html')
 
 
 @app.route('/create_charge', methods=['POST'])
-def create_charge() -> tuple:
+def create_charge() -> Tuple[Response, int]:
     """
-    Creates a charge with Stripe API. Returns charge details and latency.
+    Creates a Stripe charge, returning details and latency.
 
     Returns:
-        tuple: JSON response with charge details, HTTP status code.
+        Tuple[Response, int]: Returns JSON (charge or error) and status code.
     """
     start: datetime = datetime.now()
     data: dict = request.get_json()
@@ -71,7 +73,10 @@ def create_charge() -> tuple:
     amount: int = data['amount']
     currency: str = data['currency']
     # Get the Stripe API key from the environment variable
-    stripe_api_key: str = os.getenv('STRIPE_API_KEY')
+    stripe_api_key: Union[str, None] = os.getenv('STRIPE_API_KEY')
+
+    if stripe_api_key is None:
+        return jsonify(error="Stripe API key not found"), 500
 
     try:
         response: requests.Response = requests.post(
@@ -86,13 +91,12 @@ def create_charge() -> tuple:
         )
         response.raise_for_status()  # Raises stored HTTPError, if one occurred
     except requests.exceptions.RequestException as err:
-        if 'error' in err.response.json():
-            error_message = err.response.json().get('error').get('message', '')
-            return (jsonify(error=f"Failed to create charge: {error_message}"),
-                    err.response.status_code)
-        else:
-            return (jsonify(error="Failed to create charge: An internal error "
-                            "occurred"), 500)
+        error_message = "Failed to create charge: An internal error occurred."
+        if err.response is not None and 'error' in err.response.json():
+            error_json = err.response.json().get('error')
+            error_message = error_json.get('message', error_message)
+        return jsonify(error=error_message), 500
+
     data: dict = response.json()
     charge: Charge = Charge(
         id=data['id'],
@@ -101,9 +105,9 @@ def create_charge() -> tuple:
         status=data['status']
     )
 
-    latency: datetime.timedelta = datetime.now() - start
+    latency: timedelta = datetime.now() - start
 
-    return jsonify(id=charge.__dict__['id'], latency=latency.total_seconds())
+    return jsonify(id=charge.id, latency=latency.total_seconds()), 200
 
 
 if __name__ == '__main__':
