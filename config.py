@@ -6,8 +6,10 @@ class BaseConfig:
     Attributes:
         REQUEST_TIMEOUT (int): Default request timeout in seconds.
         Used to define how long the application waits for a response.
+        LONGPOLL_TIMEOUT (int): Default long poll timeout in seconds.
     """
     REQUEST_TIMEOUT: int = 3
+    LONGPOLL_TIMEOUT: int = 30
 
 
 class ProdConfig(BaseConfig):
@@ -18,8 +20,10 @@ class ProdConfig(BaseConfig):
 
     Attributes:
         REQUEST_TIMEOUT (int): Higher request timeout for production.
+        Inherits LONGPOLL_TIMEOUT from BaseConfig unless overridden.
     """
     REQUEST_TIMEOUT: int = 10
+    # LONGPOLL_TIMEOUT is inherited from BaseConfig
 
 
 class TestConfig(BaseConfig):
@@ -30,5 +34,7 @@ class TestConfig(BaseConfig):
 
     Attributes:
         REQUEST_TIMEOUT (int): Timeout for test environment.
+        Inherits LONGPOLL_TIMEOUT from BaseConfig unless overridden.
     """
     REQUEST_TIMEOUT: int = 5
+    # LONGPOLL_TIMEOUT is inherited from BaseConfig
