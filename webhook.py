@@ -1,7 +1,8 @@
 from flask import Flask, request, abort
 import stripe
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import os
+from typing import Tuple
 
 app: Flask = Flask(__name__)
 
@@ -14,8 +15,8 @@ else:
     app.config.from_object('config.BaseConfig')
 
 
-@app.route('/webhook', methods=['POST'])
-def stripe_webhook() -> str:
+@app.route('/api/webhook', methods=['POST'])
+def stripe_webhook() -> Tuple[str, int]:
     """
     Handles incoming webhook events from Stripe.
 
@@ -25,12 +26,16 @@ def stripe_webhook() -> str:
     'charge.refunded' event types.
 
     Returns:
-        str: A success message with a 200 HTTP status code if the event is
-             handled successfully.
+        Tuple[str, int]: A tuple containing the response message and status
+                         code.
     """
     payload: str = request.get_data(as_text=True)
-    sig_header: str = request.headers.get('Stripe-Signature')
-    endpoint_secret: str = os.getenv('STRIPE_WEBHOOK_SECRET')
+    sig_header: Optional[str] = request.headers.get('Stripe-Signature')
+    endpoint_secret: Optional[str] = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+    if sig_header is None or endpoint_secret is None:
+        app.logger.error('Missing necessary headers or configuration.')
+        abort(400)
 
     try:
         event: Dict[str, Any] = stripe.Webhook.construct_event(
