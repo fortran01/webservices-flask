@@ -38,12 +38,13 @@ INDEX_HTML: str = """
         async function poll(url) {
             const startTime = new Date().getTime();
             document.getElementById('status').innerHTML +=
-                '<br>Request: ' + new Date(startTime).toLocaleTimeString();
+                '<br>Sent request from the browser at: ' +
+                new Date(startTime).toLocaleTimeString();
             try {
                 const response = await axios.get(url);
                 const endTime = new Date().getTime();
                 document.getElementById('status').innerHTML +=
-                    '<br>Received response at: ' +
+                    '<br>Received response in the browser at: ' +
                     new Date(endTime).toLocaleTimeString();
                 document.getElementById('status').innerHTML +=
                     '<br>Data: ' + JSON.stringify(response.data) + '<br>';
@@ -55,9 +56,6 @@ INDEX_HTML: str = """
         }
 
         function startPolling() {
-            poll('/poll');
-            poll('/poll');
-            poll('/poll');
             poll('/poll');
         }
     </script>
