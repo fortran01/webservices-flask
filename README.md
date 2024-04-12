@@ -7,6 +7,7 @@ This project demonstrates various Flask web services, including Stripe payment p
 - **Stripe Payment Processing**: A synchronous service that creates Stripe charges.
 - **Stripe Webhook Handling**: Receives and processes Stripe webhook events.
 - **Long Polling**: Implements long polling to simulate real-time data fetching.
+- Show that the server maintains an open connection until data becomes available or a timeout occurs.
 
 ## Setup
 
