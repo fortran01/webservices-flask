@@ -59,7 +59,7 @@ def index() -> str:
     return render_template('charge.html')
 
 
-@app.route('/create_charge', methods=['POST'])
+@app.route('/api/create_charge', methods=['POST'])
 def create_charge() -> Tuple[Response, int]:
     """
     Creates a Stripe charge, returning details and latency.
