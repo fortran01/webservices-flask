@@ -56,7 +56,7 @@ INDEX_HTML: str = """
         }
 
         function startPolling() {
-            poll('/poll');
+            poll('/api/poll');
         }
     </script>
 </head>
@@ -79,7 +79,7 @@ def home() -> str:
     return render_template_string(INDEX_HTML)
 
 
-@app.route('/poll')
+@app.route('/api/poll')
 def poll() -> Response:
     """
     Handles long polling requests.
