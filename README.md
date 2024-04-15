@@ -43,3 +43,4 @@ The project uses different configurations based on the Flask environment (`devel
 - **Stripe Payment Processing**: `POST /create_charge`
 - **Stripe Webhook Handling**: `POST /api/webhook`
 - **Long Polling**: `GET /poll` and the home page at `GET /`
+- **Server-Sent Events (SSE)**: `GET /sse`
