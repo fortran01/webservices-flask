@@ -1,6 +1,6 @@
 # webservices-flask
 
-This project demonstrates various Flask web services, including Stripe payment processing, webhook handling, and long polling.
+This project demonstrates various Flask web services, including Stripe payment processing, webhook handling, long polling, SSE, websockets, and more.
 
 ## Features
 
