@@ -21,16 +21,16 @@ SSE_HTML: str = """
                     dataDiv.innerHTML += e.data + '<br>';
                     // reset reconnect attempts on successful message
                     reconnectAttempts = 0;
-                    var attemptsDiv = document.getElementById('reconnect-attempts');
-                    attemptsDiv.innerHTML = 'Reconnect attempts: ' + reconnectAttempts;
+                    var atDiv = document.getElementById('reconnect-attempts');
+                    atDiv.innerHTML = 'Attempts: ' + reconnectAttempts;
                 };
 
                 source.onerror = function(error) {
-                    console.error("EventSource failed:", error);
+                    console.error("Failed:", error);
                     source.close();
                     reconnectAttempts++;
-                    var attemptsDiv = document.getElementById('reconnect-attempts');
-                    attemptsDiv.innerHTML = 'Reconnect attempts: ' + reconnectAttempts;
+                    var atDiv = document.getElementById('reconnect-attempts');
+                    atDiv.innerHTML = 'Attempts: ' + reconnectAttempts;
                     setTimeout(connect, 5000);
                 };
             };
