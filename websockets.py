@@ -30,6 +30,34 @@ def index() -> str:
     return render_template('index.html')
 
 
+class Charge:
+    """
+    Represents a charge in the context of the Stripe API.
+
+    Attributes:
+        id (str): Unique identifier for the charge.
+        amount (int): Amount of the charge.
+        currency (str): Currency of the charge.
+        status (str): Status of the charge.
+    """
+
+    def __init__(self, id: str, amount: int, currency: str,
+                 status: str) -> None:
+        """
+        Initializes a new Charge instance.
+
+        Parameters:
+            id (str): Unique identifier for the charge.
+            amount (int): Amount of the charge.
+            currency (str): Currency of the charge.
+            status (str): Status of the charge.
+        """
+        self.id = id
+        self.amount = amount
+        self.currency = currency
+        self.status = status
+
+
 @app.route('/api/create_charge', methods=['POST'])
 def create_charge() -> Tuple[Response, int]:
     """
@@ -43,8 +71,7 @@ def create_charge() -> Tuple[Response, int]:
     token: str = data['token']
     amount: int = data['amount']
     currency: str = data['currency']
-    # Get the Stripe API key from the environment variable
-    stripe_api_key: Union[str, None] = os.getenv('STRIPE_SECRET_KEY')
+    stripe_api_key: Union[str, None] = os.getenv('STRIPE_API_KEY')
 
     if stripe_api_key is None:
         return jsonify(error="Stripe API key not found"), 500
@@ -68,12 +95,19 @@ def create_charge() -> Tuple[Response, int]:
             error_message = error_json.get('message', error_message)
         return jsonify(error=error_message), 500
 
-    charge_info: Dict[str, Any] = response.json()
-    latency: timedelta = datetime.now() - start
-    socketio.emit('payment_status', {
-                  'status': 'success', 'charge_id': charge_info['id']})
+    charge_data: Dict[str, Any] = response.json()
+    charge: Charge = Charge(
+        id=charge_data['id'],
+        amount=charge_data['amount'],
+        currency=charge_data['currency'],
+        status=charge_data['status']
+    )
 
-    return jsonify(charge_info, latency=latency.total_seconds()), 200
+    latency: timedelta = datetime.now() - start
+    socketio.emit('charge_status', {
+                  'status': 'pending', 'charge': charge_data, 'timestamp': datetime.now().isoformat()})
+
+    return jsonify(id=charge.id, latency=latency.total_seconds()), 200
 
 
 @app.route('/api/webhook', methods=['POST'])
@@ -116,11 +150,15 @@ def stripe_webhook() -> Tuple[str, int]:
     if event and event['type'] == 'payment_intent.succeeded':
         payment_intent: Dict[str, Any] = event['data']['object']
         socketio.emit('payment_intent', {
-                      'status': 'succeeded', 'payment_intent': payment_intent})
+                      'status': 'succeeded', 'payment_intent': payment_intent, 'timestamp': datetime.now().isoformat()})
     elif event and event['type'] == 'charge.refunded':
         refund: Dict[str, Any] = event['data']['object']
-        socketio.emit('charge_refund', {
-                      'status': 'refunded', 'refund': refund})
+        socketio.emit('charge_status', {
+                      'status': 'refunded', 'refund': refund, 'timestamp': datetime.now().isoformat()})
+    elif event and event['type'] == 'charge.succeeded':
+        charge: Dict[str, Any] = event['data']['object']
+        socketio.emit('charge_status', {
+                      'status': 'succeeded', 'charge': charge, 'timestamp': datetime.now().isoformat()})
     else:
         app.logger.error(
             f'Unhandled event type: {event.get("type", "Unknown")}')

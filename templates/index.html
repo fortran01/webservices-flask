@@ -3,7 +3,7 @@
 <head>
     <title>Stripe Payment Example</title>
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script> 
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +40,7 @@
             width: 100%;
         }
         
-        #result {
+        #result, #websocket-messages {
             margin-top: 20px;
         }
     </style>
@@ -66,6 +66,7 @@
         </form>
         
         <div id="result"></div>
+        <div id="websocket-messages"></div>
     </div>
     
     <script>
@@ -130,6 +131,24 @@
             var resultElement = document.getElementById('result');
             resultElement.innerHTML = '<p style="color: red;">' + message + '</p>';
         }
+
+        function updateWebSocketMessages(message) {
+            var websocketMessagesElement = document.getElementById('websocket-messages');
+            websocketMessagesElement.innerHTML += '<p>' + message + '</p>';
+        }
+
+        // Initialize WebSocket connection using socket.io.min.js
+        var socket = io();
+        socket.on('charge_status', function(data) {
+            console.log('Payment status:', data);
+            // Update the UI based on payment status
+            var messageContent = 'Payment status: ' + data.status + '. Charge ID: ' + data.charge.id + '. Timestamp: ' + data.timestamp;
+            if(data.status === 'pending' || data.status === 'succeeded') {
+                updateWebSocketMessages(messageContent);
+            } else {
+                updateWebSocketMessages('<p style="color: red;">' + messageContent + ' Error: ' + data.error + '</p>');
+            }
+        });
     </script>
 </body>
 </html>
