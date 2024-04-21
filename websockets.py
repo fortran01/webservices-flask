@@ -104,8 +104,14 @@ def create_charge() -> Tuple[Response, int]:
     )
 
     latency: timedelta = datetime.now() - start
-    socketio.emit('charge_status', {
-                  'status': 'pending', 'charge': charge_data, 'timestamp': datetime.now().isoformat()})
+    socketio.emit(
+        'charge_status',
+        {
+            'status': 'pending',
+            'charge': charge_data,
+            'timestamp': datetime.now().isoformat()
+        }
+    )
 
     return jsonify(id=charge.id, latency=latency.total_seconds()), 200
 
@@ -149,16 +155,34 @@ def stripe_webhook() -> Tuple[str, int]:
     # Handle the event
     if event and event['type'] == 'payment_intent.succeeded':
         payment_intent: Dict[str, Any] = event['data']['object']
-        socketio.emit('payment_intent', {
-                      'status': 'succeeded', 'payment_intent': payment_intent, 'timestamp': datetime.now().isoformat()})
+        socketio.emit(
+            'payment_intent',
+            {
+                'status': 'succeeded',
+                'payment_intent': payment_intent,
+                'timestamp': datetime.now().isoformat()
+            }
+        )
     elif event and event['type'] == 'charge.refunded':
         refund: Dict[str, Any] = event['data']['object']
-        socketio.emit('charge_status', {
-                      'status': 'refunded', 'refund': refund, 'timestamp': datetime.now().isoformat()})
+        socketio.emit(
+            'charge_status',
+            {
+                'status': 'refunded',
+                'refund': refund,
+                'timestamp': datetime.now().isoformat()
+            }
+        )
     elif event and event['type'] == 'charge.succeeded':
         charge: Dict[str, Any] = event['data']['object']
-        socketio.emit('charge_status', {
-                      'status': 'succeeded', 'charge': charge, 'timestamp': datetime.now().isoformat()})
+        socketio.emit(
+            'charge_status',
+            {
+                'status': 'succeeded',
+                'charge': charge,
+                'timestamp': datetime.now().isoformat()
+            }
+        )
     else:
         app.logger.error(
             f'Unhandled event type: {event.get("type", "Unknown")}')
