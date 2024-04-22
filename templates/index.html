@@ -137,8 +137,9 @@
             websocketMessagesElement.innerHTML += '<p>' + message + '</p>';
         }
 
-        // Initialize WebSocket connection using socket.io.min.js
-        var socket = io();
+        // Force the client to use WebSockets only, as the server supports both WebSockets and polling
+        // var socket = io();
+        var socket = io({transports: ['websocket']});
         socket.on('charge_status', function(data) {
             console.log('Payment status:', data);
             // Update the UI based on payment status
