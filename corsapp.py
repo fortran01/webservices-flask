@@ -1,7 +1,7 @@
 from flask import Flask, Response, Request, abort, jsonify, request
 from typing import Dict
 
-app: Flask = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='static')
 
 POSTS: Dict[str, Dict[str, str]] = {
     '1': {'post': 'This is the first blog post.'},
@@ -43,13 +43,20 @@ def handle_cors(response: Response) -> Response:
     """
     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Expose-Headers'] = 'X-Powered-By'
+    response.headers['Access-Control-Max-Age'] = '120'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, DELETE'
+    response.headers['Access-Control-Allow-Headers'] = (
+        'Timezone-Offset, Sample-Source'
+    )
+    response.headers['X-Powered-By'] = 'Flask'
+    # Settings the Vary header to 'Origin' ensures that the servers's CORS
+    # policy is espected by the caches, preventing them from incorrectly
+    # delivering cached responses to different origins,
+    # which could potentially expose sensitive data or
+    # violate security policies.
+    response.headers['Vary'] = 'Origin'
     if is_preflight(request):
-        response.headers['Access-Control-Allow-Methods'] = 'GET, DELETE'
-        response.headers['Access-Control-Allow-Headers'] = (
-            'Timezone-Offset, Sample-Source'
-        )
-        response.headers['Access-Control-Max-Age'] = '120'
-        response.headers['Access-Control-Expose-Headers'] = 'X-Powered-By'
         response.status_code = 204
     return response
 

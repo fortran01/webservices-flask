@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><body>
+<form onsubmit="handleLogin(); return false;">
+  Username: <input type="text" id="username"></input>
+  Password: <input type="password" id="password"></input>
+  <input type="submit" id="btnSubmit" value="Login"></input>
+</form>
+<script>
+var handleLogin = function() {
+  var username = document.getElementById('username').value;
+  /*
+    - SameSite attribute prevents CSRF attacks with three settings:
+      - Strict: Only sent in first-party context.
+      - Lax: Sent on navigation to the origin site, not on subrequests.
+      - None: Sent in all contexts; requires Secure attribute if set.
+    
+    - Secure attribute ensures cookies are only sent over HTTPS, preventing man-in-the-middle attacks.
+  */
+  document.cookie = 'username=' + encodeURIComponent(username) + '; SameSite=None; Secure';
+  window.location = 'http://localhost:5000/client.html';
+}
+</script>
+</body></html>
