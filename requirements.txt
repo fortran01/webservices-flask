@@ -24,3 +24,5 @@ typing_extensions==4.10.0
 urllib3==2.2.1
 Werkzeug==3.0.2
 wsproto==1.2.0
+celery==5.4.0
+redis==5.0.4

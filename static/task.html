@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Async GitHub Data Processing</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        function fetchData() {
+            fetch('/api/fetch-github-data')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Task started:', data);
+                    document.getElementById('loading').style.display = 'block';  // Show loading indicator
+                    document.getElementById('data').style.display = 'block';  // Show data div
+                    document.getElementById('taskDetails').style.display = 'block';  // Show task details div
+                    document.getElementById('taskDetails').innerHTML = 'Task ID: ' + data.task_id + '<br>Status: ' + data.status;  // Display task details
+                    document.getElementById('data').innerHTML = '<div class="loader"></div>Waiting for data...';  // Reset to waiting message with loader
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        socket.on('connect', function() {
+            console.log('Connected to the server!');
+        });
+
+        socket.on('data_processed', function(data) {
+            document.getElementById('data').textContent = JSON.stringify(data, null, 2);
+        });
+
+        socket.on('task_completed', function(message) {
+            document.getElementById('loading').style.display = 'none';  // Hide loading indicator
+            console.log(message.message);
+        });
+    </script>
+    <style>
+        .loader {
+            border: 5px solid #f3f3f3; /* Light grey */
+            border-top: 5px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Async GitHub Data Processing with Task Queue and WebSockets</h1>
+    <button onclick="fetchData()">Fetch GitHub Data</button>
+    <div id="loading" style="display:none;">Loading, please wait...</div>
+    <div id="taskDetails" style="display:none;">Task:</div> <!-- Div to display task details -->
+    <div id="data" style="display:none;"><div class="loader"></div>Waiting for data...</div>
+</body>
+</html>
