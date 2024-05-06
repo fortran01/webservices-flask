@@ -7,15 +7,26 @@ This project demonstrates various Flask web services, including Stripe payment p
 - **Stripe Payment Processing**: A synchronous service that creates Stripe charges.
 - **Stripe Webhook Handling**: Receives and processes Stripe webhook events.
 - **Long Polling**: Implements long polling to simulate real-time data fetching.
-- Show that the server maintains an open connection until data becomes available or a timeout occurs.
 - **Server-Sent Events (SSE)**: Implements Server-Sent Events to push data to the client.
+- **WebSockets**: Implements WebSockets to push data to the client.
+- **Task Queue**: Demonstrates how to use a task queue to process long-running tasks asynchronously.
+- **CORs**: Implements CORs to allow cross-origin requests.
 
 ## Endpoints
 
-- **Stripe Payment Processing**: `POST /create_charge`
+- **Stripe Payment Processing**: `POST /api/create_charge`
 - **Stripe Webhook Handling**: `POST /api/webhook`
-- **Long Polling**: `GET /poll` and the home page at `GET /`
-- **Server-Sent Events (SSE)**: `GET /sse`
+- **Long Polling**: `GET /api/poll` and the home page at `GET /`
+- **Server-Sent Events (SSE)**: `GET /api/sse`
+- **Task Queue**: `GET /api/fetch-github-data`
+
+## Simple Frontend Demos
+
+- /login.html - A simple login page that sets a secure cookie with the username and redirects to the client page.
+- /client.html - A client-side application that fetches and displays blog posts, and allows deletion of posts with CORS support.
+- /task.html - A client-side application that fetches GitHub data using a task queue.
+- /charge.html - A client-side application that creates a Stripe charge.
+- /index.html - A client-side application that demonstrates Stripe payment processing with real-time updates via WebSockets.
 
 ## Setup
 
