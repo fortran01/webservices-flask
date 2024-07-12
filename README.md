@@ -31,6 +31,12 @@ This project demonstrates various Flask web services, including Stripe payment p
 ## Setup
 
 - Clone the repository
+- Create a virtual environment:
+
+```bash
+python3 -m venv venv
+```
+
 - Install dependencies:
   
 ```bash
