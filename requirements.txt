@@ -1,7 +1,7 @@
 asgiref==3.8.1
 autopep8==2.1.0
 bidict==0.23.1
-blinker==1.7.0
+blinker==1.8.2
 certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
