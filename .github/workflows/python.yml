@@ -22,11 +22,24 @@ jobs:
       - name: Run Flask apps
         run: |
           flask --app corsapp run -p 5001 &
+          PID1=$!
           flask --app longpoll run -p 5002 &
+          PID2=$!
           flask --app sse run -p 5003 &
+          PID3=$!
           flask --app sync run -p 5004 &
+          PID4=$!
           flask --app taskapp run -p 5005 &
+          PID5=$!
           flask --app webhook run -p 5006 &
+          PID6=$!
           flask --app websockets run -p 5007 &
-          sleep 3
-          pkill -f flask
+          PID7=$!
+          sleep 3  # Allow servers time to start
+          # Check if all servers started successfully
+          if ! kill -0 $PID1 || ! kill -0 $PID2 || ! kill -0 $PID3 || ! kill -0 $PID4 || ! kill -0 $PID5 || ! kill -0 $PID6 || ! kill -0 $PID7; then
+            echo "One or more Flask applications failed to start."
+            exit 1
+          fi
+          # Kill all Flask processes
+          kill $PID1 $PID2 $PID3 $PID4 $PID5 $PID6 $PID7
