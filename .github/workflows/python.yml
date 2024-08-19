@@ -21,18 +21,12 @@ jobs:
 
       - name: Run Flask apps
         run: |
-          flask --app corsapp run &
-          sleep 3
-          flask --app longpoll run &
-          sleep 3
-          flask --app sse run &
-          sleep 3
-          flask --app sync run &
-          sleep 3
-          flask --app taskapp run &
-          sleep 3
-          flask --app webhook run &
-          sleep 3
-          flask --app websockets run &
+          flask --app corsapp run -p 5001 &
+          flask --app longpoll run -p 5002 &
+          flask --app sse run -p 5003 &
+          flask --app sync run -p 5004 &
+          flask --app taskapp run -p 5005 &
+          flask --app webhook run -p 5006 &
+          flask --app websockets run -p 5007 &
           sleep 3
           pkill -f flask
