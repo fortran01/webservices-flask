@@ -21,7 +21,7 @@ simple-websocket==1.0.0
 stripe==10.10.0
 tomli==2.0.1
 typing_extensions==4.12.2
-urllib3==2.2.2
+urllib3==2.2.3
 Werkzeug==3.0.4
 wsproto==1.2.0
 celery==5.4.0
