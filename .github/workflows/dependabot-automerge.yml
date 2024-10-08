@@ -1,7 +1,7 @@
 name: Dependabot auto-merge
 on:
   schedule:
-    - cron: "0 * * * *" # Run every hour
+    - cron: "0 1 * * *" # Run every 1am EST
   workflow_dispatch:
 
 permissions:
@@ -28,10 +28,15 @@ jobs:
       - name: Process Dependabot PRs
         run: |
           while IFS= read -r PR_URL; do
-            echo "Processing PR: $PR_URL"
+            # Get PR number
+            PR_NUMBER=$(gh pr view "$PR_URL" --json number --jq '.number')
             
             # Check PR status
             PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].state' | sort -u)
+            
+            echo "Processing PR #$PR_NUMBER"
+            echo "PR Status: $PR_STATUS"
+            
             if [ "$PR_STATUS" = "SUCCESS" ]; then
               echo "All checks passed. Approving and enabling auto-merge."
               
