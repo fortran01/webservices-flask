@@ -43,14 +43,19 @@ jobs:
               echo "All checks passed. Approving and enabling auto-merge."
               
               # Approve PR
-              gh pr review --approve "$PR_URL"
+              if ! gh pr review --approve "$PR_URL"; then
+                echo "Error approving PR #$PR_NUMBER"
+                continue
+              fi
               
               # Enable auto-merge
-              gh pr merge --auto --merge "$PR_URL"
+              if ! gh pr merge --auto --merge "$PR_URL"; then
+                echo "Error enabling auto-merge for PR #$PR_NUMBER"
+                continue
+              fi
             else
               echo "Some checks have not passed. Status: $PR_STATUS. Skipping approval and auto-merge."
             fi
-            
             echo "---"
           done <<< "${{ steps.dependabot_prs.outputs.PR_LIST }}"
         env:
