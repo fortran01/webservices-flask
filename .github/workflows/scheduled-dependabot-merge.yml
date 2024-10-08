@@ -27,18 +27,16 @@ jobs:
             echo "Found open Dependabot PRs: $prs"
             echo "pr_list=$prs" >> $GITHUB_OUTPUT
           fi
-        shell: /usr/bin/bash -e {0}
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Process PRs
         if: steps.get-prs.outputs.pr_list != ''
         run: |
           for pr in ${{ steps.get-prs.outputs.pr_list }}; do
             echo "Processing PR #$pr"
-            echo "Approving and auto-merging PR #$pr"
-            gh pr review $pr --approve
+            echo "Auto-merging PR #$pr"
             gh pr merge $pr --auto --squash
           done
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
