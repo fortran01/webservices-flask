@@ -43,7 +43,7 @@ jobs:
             package_ecosystem=$(echo $metadata | jq -r '.body' | grep -oP '(?<=`)[^`]+(?=`)' | head -1)
             update_type=$(echo $metadata | jq -r '.title' | grep -oP 'Bump .+ from .+ to .+')
             
-            if [[ "$package_ecosystem" == "npm_and_yarn" || "$package_ecosystem" == "github_actions" ]]; then
+            if [[ "$package_ecosystem" == "npm_and_yarn" || "$package_ecosystem" == "github_actions" || "$package_ecosystem" == "pip" ]]; then
               if [[ ! "$update_type" =~ .*"major".* ]]; then
                 echo "Approving and auto-merging PR #$pr"
                 gh pr review $pr --approve
@@ -52,7 +52,7 @@ jobs:
                 echo "Skipping major update PR #$pr"
               fi
             else
-              echo "Skipping PR #$pr (not npm/yarn or GitHub Actions)"
+              echo "Skipping PR #$pr (not npm/yarn, GitHub Actions, or pip)"
             fi
           done
         env:
