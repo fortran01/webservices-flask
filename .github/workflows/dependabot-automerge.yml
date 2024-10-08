@@ -43,16 +43,18 @@ jobs:
               echo "All checks passed. Approving and enabling auto-merge."
               
               # Approve PR
-              if ! gh pr review --approve "$PR_URL"; then
-                echo "Error approving PR #$PR_NUMBER"
-                continue
-              fi
+              # if ! gh pr review --approve "$PR_URL"; then
+              #   echo "Error approving PR #$PR_NUMBER"
+              #   continue
+              # fi
+              gh pr review --approve "$PR_URL"
               
               # Enable auto-merge
-              if ! gh pr merge --auto --merge "$PR_URL"; then
-                echo "Error enabling auto-merge for PR #$PR_NUMBER"
-                continue
-              fi
+              # if ! gh pr merge --auto --merge "$PR_URL"; then
+              #   echo "Error enabling auto-merge for PR #$PR_NUMBER"
+              #   continue
+              # fi
+              gh pr merge --auto --merge "$PR_URL"
             else
               echo "Some checks have not passed. Status: $PR_STATUS. Skipping approval and auto-merge."
             fi
