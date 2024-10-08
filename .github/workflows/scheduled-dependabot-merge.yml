@@ -18,8 +18,9 @@ jobs:
       - name: Get open Dependabot PRs
         id: get-prs
         run: |
-          prs=$(gh pr list --repo ${{ github.repository }} --author app/dependabot --json number --jq '.[].number')
+          prs=$(gh pr list --repo fortran01/webservices-flask --author app/dependabot --json number --jq '.[].number')
           echo "pr_list=$prs" >> $GITHUB_OUTPUT
+        shell: /usr/bin/bash -e {0}
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
