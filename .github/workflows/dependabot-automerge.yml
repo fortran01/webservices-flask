@@ -1,12 +1,8 @@
 name: Dependabot auto-merge
 on:
-  pull_request:
+  schedule:
+    - cron: "0 * * * *" # Run every hour
   workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "Pull Request Number"
-        required: true
-        type: number
 
 permissions:
   pull-requests: write
@@ -15,48 +11,40 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') ||
-      (github.event_name == 'workflow_dispatch')
     steps:
-      - name: Get PR URL
-        id: pr_url
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "PR_URL=https://github.com/${{ github.repository }}/pull/${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
-          else
-            echo "PR_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
-          fi
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Check PR status
-        id: pr_status
+      - name: Get open Dependabot PRs
+        id: dependabot_prs
         run: |
-          PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].state' | sort -u)
-          if [ "$PR_STATUS" = "SUCCESS" ]; then
-            echo "PR_CHECKS_PASSED=true" >> $GITHUB_OUTPUT
-          else
-            echo "PR_CHECKS_PASSED=false" >> $GITHUB_OUTPUT
-          fi
+          prs=$(gh pr list --author app/dependabot --json number,url --jq '.[].url')
+          echo "PR_LIST<<EOF" >> $GITHUB_OUTPUT
+          echo "$prs" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
         env:
-          PR_URL: ${{ steps.pr_url.outputs.PR_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Approve PR
-        if: steps.pr_status.outputs.PR_CHECKS_PASSED == 'true'
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ steps.pr_url.outputs.PR_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge
-        if: steps.pr_status.outputs.PR_CHECKS_PASSED == 'true'
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{ steps.pr_url.outputs.PR_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check if auto-approval failed
-        if: steps.pr_status.outputs.PR_CHECKS_PASSED == 'false'
+      - name: Process Dependabot PRs
         run: |
-          echo "Auto-approval did not continue because some tests failed."
-          exit 1
+          while IFS= read -r PR_URL; do
+            echo "Processing PR: $PR_URL"
+            
+            # Check PR status
+            PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].state' | sort -u)
+            if [ "$PR_STATUS" = "SUCCESS" ]; then
+              echo "All checks passed. Approving and enabling auto-merge."
+              
+              # Approve PR
+              gh pr review --approve "$PR_URL"
+              
+              # Enable auto-merge
+              gh pr merge --auto --merge "$PR_URL"
+            else
+              echo "Some checks have not passed. Skipping approval and auto-merge."
+            fi
+            
+            echo "---"
+          done <<< "${{ steps.dependabot_prs.outputs.PR_LIST }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
