@@ -19,13 +19,19 @@ jobs:
         id: dependabot_prs
         run: |
           prs=$(gh pr list --author app/dependabot --json number,url --jq '.[].url')
-          echo "PR_LIST<<EOF" >> $GITHUB_OUTPUT
-          echo "$prs" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          if [ -z "$prs" ]; then
+            echo "No Dependabot PRs found."
+            echo "PR_LIST=" >> $GITHUB_OUTPUT
+          else
+            echo "PR_LIST<<EOF" >> $GITHUB_OUTPUT
+            echo "$prs" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Process Dependabot PRs
+        if: steps.dependabot_prs.outputs.PR_LIST != ''
         run: |
           while IFS= read -r PR_URL; do
             # Get PR number
@@ -43,17 +49,9 @@ jobs:
               echo "All checks passed. Approving and enabling auto-merge."
               
               # Approve PR
-              # if ! gh pr review --approve "$PR_URL"; then
-              #   echo "Error approving PR #$PR_NUMBER"
-              #   continue
-              # fi
               gh pr review --approve "$PR_URL"
               
               # Enable auto-merge
-              # if ! gh pr merge --auto --merge "$PR_URL"; then
-              #   echo "Error enabling auto-merge for PR #$PR_NUMBER"
-              #   continue
-              # fi
               gh pr merge --auto --merge "$PR_URL"
             else
               echo "Some checks have not passed. Status: $PR_STATUS. Skipping approval and auto-merge."
