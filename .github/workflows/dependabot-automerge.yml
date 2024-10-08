@@ -31,13 +31,19 @@ jobs:
             # Get PR number
             PR_NUMBER=$(gh pr view "$PR_URL" --json number --jq '.number')
             
-            # Check PR status
+            # Check PR status and debug output
+            echo "Debug: Full PR info"
+            gh pr view "$PR_URL" --json statusCheckRollup
+            
+            echo "Debug: Attempting to get status"
             PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].state' | sort -u)
             
             echo "Processing PR #$PR_NUMBER"
             echo "PR Status: $PR_STATUS"
             
-            if [ "$PR_STATUS" = "SUCCESS" ]; then
+            if [ -z "$PR_STATUS" ]; then
+              echo "PR status is empty. Skipping approval and auto-merge."
+            elif [ "$PR_STATUS" = "SUCCESS" ]; then
               echo "All checks passed. Approving and enabling auto-merge."
               
               # Approve PR
@@ -46,7 +52,7 @@ jobs:
               # Enable auto-merge
               gh pr merge --auto --merge "$PR_URL"
             else
-              echo "Some checks have not passed. Skipping approval and auto-merge."
+              echo "Some checks have not passed. Status: $PR_STATUS. Skipping approval and auto-merge."
             fi
             
             echo "---"
