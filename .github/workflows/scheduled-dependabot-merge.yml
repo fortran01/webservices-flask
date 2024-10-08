@@ -2,6 +2,7 @@ name: Scheduled Dependabot Merge
 on:
   schedule:
     - cron: "0 1 * * *" # Runs every day at 1am
+  workflow_dispatch: # Allows manual triggering of the workflow
 
 permissions:
   contents: write
