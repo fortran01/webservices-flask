@@ -54,3 +54,9 @@ jobs:
         env:
           PR_URL: ${{ steps.pr_url.outputs.PR_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if auto-approval failed
+        if: steps.pr_status.outputs.PR_CHECKS_PASSED == 'false'
+        run: |
+          echo "Auto-approval did not continue because some tests failed."
+          exit 1
