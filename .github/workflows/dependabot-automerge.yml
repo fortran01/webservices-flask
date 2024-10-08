@@ -1,7 +1,7 @@
 name: Dependabot auto-merge
 on:
   schedule:
-    - cron: "0 1 * * *" # Run every 1am EST
+    - cron: '0 1 * * *' # Run every 1am EST
   workflow_dispatch:
 
 permissions:
@@ -11,6 +11,8 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.PAT_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -27,8 +29,6 @@ jobs:
             echo "$prs" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           fi
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Process Dependabot PRs
         if: steps.dependabot_prs.outputs.PR_LIST != ''
@@ -58,5 +58,3 @@ jobs:
             fi
             echo "---"
           done <<< "${{ steps.dependabot_prs.outputs.PR_LIST }}"
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
