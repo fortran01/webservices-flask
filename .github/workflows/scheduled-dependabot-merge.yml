@@ -40,14 +40,30 @@ jobs:
             metadata=$(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/pulls/$pr)
             
             # Extract package ecosystem and update type
-            package_ecosystem=$(echo $metadata | jq -r '.body' | grep -oP '(?<=`)[^`]+(?=`)' | head -1)
-            update_type=$(echo $metadata | jq -r '.title' | grep -oP 'Bump .+ from .+ to .+')
+            pr_body=$(echo "$metadata" | jq -r '.body')
+            package_ecosystem=$(echo "$pr_body" | grep -oP '(?<=\*\*Package ecosystem\*\*: )[^\n]+' || echo "unknown")
+            dependency=$(echo "$metadata" | jq -r '.title' | grep -oP 'Bump \K.+(?= from)')
+            update_type=$(echo "$metadata" | jq -r '.title' | grep -oP 'Bump .+ from .+ to .+')
+            
+            # Determine the actual package ecosystem
+            if [[ "$package_ecosystem" == "@dependabot rebase" ]]; then
+              if [[ "$dependency" == *".py" || "$dependency" == "pip" || "$dependency" == "flask"* || "$dependency" == "markupsafe" ]]; then
+                package_ecosystem="pip"
+              elif [[ "$dependency" == *".js" || "$dependency" == "npm" || "$dependency" == "stripe" ]]; then
+                package_ecosystem="npm"
+              elif [[ "$dependency" == "actions/"* ]]; then
+                package_ecosystem="github-actions"
+              else
+                package_ecosystem="unknown"
+              fi
+            fi
             
             # Show package ecosystem and update type
             echo "Package Ecosystem: $package_ecosystem"
+            echo "Dependency: $dependency"
             echo "Update Type: $update_type"
             
-            if [[ "$package_ecosystem" == "npm_and_yarn" || "$package_ecosystem" == "github_actions" || "$package_ecosystem" == "pip" ]]; then
+            if [[ "$package_ecosystem" == "npm" || "$package_ecosystem" == "github-actions" || "$package_ecosystem" == "pip" ]]; then
               if [[ ! "$update_type" =~ .*"major".* ]]; then
                 echo "Approving and auto-merging PR #$pr"
                 gh pr review $pr --approve
@@ -56,7 +72,7 @@ jobs:
                 echo "Skipping major update PR #$pr"
               fi
             else
-              echo "Skipping PR #$pr (not npm/yarn, GitHub Actions, or pip)"
+              echo "Skipping PR #$pr (not npm, GitHub Actions, or pip)"
             fi
           done
         env:
