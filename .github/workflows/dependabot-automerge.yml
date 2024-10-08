@@ -23,7 +23,7 @@ jobs:
           echo "$prs" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Process Dependabot PRs
         run: |
@@ -54,4 +54,4 @@ jobs:
             echo "---"
           done <<< "${{ steps.dependabot_prs.outputs.PR_LIST }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
