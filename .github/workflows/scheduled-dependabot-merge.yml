@@ -1,0 +1,50 @@
+name: Scheduled Dependabot Merge
+on:
+  schedule:
+    - cron: "0 1 * * *" # Runs every day at 1am
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get open Dependabot PRs
+        id: get-prs
+        run: |
+          prs=$(gh pr list --repo ${{ github.repository }} --author app/dependabot --json number --jq '.[].number')
+          echo "pr_list=$prs" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Process PRs
+        run: |
+          for pr in ${{ steps.get-prs.outputs.pr_list }}; do
+            echo "Processing PR #$pr"
+            
+            # Fetch metadata
+            metadata=$(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/pulls/$pr)
+            
+            # Extract package ecosystem and update type
+            package_ecosystem=$(echo $metadata | jq -r '.body' | grep -oP '(?<=`)[^`]+(?=`)' | head -1)
+            update_type=$(echo $metadata | jq -r '.title' | grep -oP 'Bump .+ from .+ to .+')
+            
+            if [[ "$package_ecosystem" == "npm_and_yarn" || "$package_ecosystem" == "github_actions" ]]; then
+              if [[ ! "$update_type" =~ .*"major".* ]]; then
+                echo "Approving and auto-merging PR #$pr"
+                gh pr review $pr --approve
+                gh pr merge $pr --auto --squash
+              else
+                echo "Skipping major update PR #$pr"
+              fi
+            else
+              echo "Skipping PR #$pr (not npm/yarn or GitHub Actions)"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
