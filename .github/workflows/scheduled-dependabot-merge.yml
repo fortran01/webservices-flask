@@ -59,6 +59,9 @@ jobs:
             fi
             
             # Show package ecosystem and update type
+            echo "PR Body:"
+            echo "$pr_body"
+            echo "-----------------------------------"
             echo "Package Ecosystem: $package_ecosystem"
             echo "Dependency: $dependency"
             echo "Update Type: $update_type"
