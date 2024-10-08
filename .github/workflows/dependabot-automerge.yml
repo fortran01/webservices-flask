@@ -31,12 +31,8 @@ jobs:
             # Get PR number
             PR_NUMBER=$(gh pr view "$PR_URL" --json number --jq '.number')
             
-            # Check PR status and debug output
-            echo "Debug: Full PR info"
-            gh pr view "$PR_URL" --json statusCheckRollup
-            
-            echo "Debug: Attempting to get status"
-            PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].state' | sort -u)
+            # Check PR status
+            PR_STATUS=$(gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup[].conclusion' | sort -u)
             
             echo "Processing PR #$PR_NUMBER"
             echo "PR Status: $PR_STATUS"
