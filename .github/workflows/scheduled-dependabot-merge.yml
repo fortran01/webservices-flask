@@ -43,6 +43,10 @@ jobs:
             package_ecosystem=$(echo $metadata | jq -r '.body' | grep -oP '(?<=`)[^`]+(?=`)' | head -1)
             update_type=$(echo $metadata | jq -r '.title' | grep -oP 'Bump .+ from .+ to .+')
             
+            # Show package ecosystem and update type
+            echo "Package Ecosystem: $package_ecosystem"
+            echo "Update Type: $update_type"
+            
             if [[ "$package_ecosystem" == "npm_and_yarn" || "$package_ecosystem" == "github_actions" || "$package_ecosystem" == "pip" ]]; then
               if [[ ! "$update_type" =~ .*"major".* ]]; then
                 echo "Approving and auto-merging PR #$pr"
