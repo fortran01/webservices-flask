@@ -4,7 +4,7 @@ bidict==0.23.1
 blinker==1.8.2
 certifi==2024.12.14
 charset-normalizer==3.4.0
-click==8.1.7
+click==8.1.8
 Flask==3.0.3
 Flask-SocketIO==5.4.1
 h11==0.14.0
