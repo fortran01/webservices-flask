@@ -6,7 +6,7 @@ certifi==2024.12.14
 charset-normalizer==3.4.0
 click==8.1.8
 Flask==3.0.3
-Flask-SocketIO==5.4.1
+Flask-SocketIO==5.5.1
 h11==0.14.0
 idna==3.10
 itsdangerous==2.2.0
